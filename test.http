@@ -1,0 +1,34 @@
+###
+#
+# Browse Books
+#
+GET http://localhost:4004/odata/V4/Catalog/Books
+
+###
+#Browse book by id
+GET http://localhost:4004/odata/V4/Catalog/Books(1b21a5b3-8fdf-4c54-9923-f25167d0fc75)
+
+###insert a new book
+POST http://localhost:4004/odata/V4/Catalog/Books
+Content-Type: application/json
+
+{
+  "title": "Oliver",
+  "author": "Jinoy",
+  "price": 1223,
+  "stock": 10
+}
+
+###update a book
+PATCH http://localhost:4004/odata/V4/Catalog/Books(1b21a5b3-8fdf-4c54-9923-f25167d0fc75)
+Content-Type: application/json
+
+{
+  "title": "Atomic Habbits",
+  "author": "Rishi",
+  "price": 130,
+  "stock": 13
+}
+
+###delete a book
+DELETE http://localhost:4004/odata/V4/Catalog/Books(1b21a5b3-8fdf-4c54-9923-f25167d0fc75)
