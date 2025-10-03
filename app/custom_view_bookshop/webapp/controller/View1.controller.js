@@ -166,6 +166,58 @@ sap.ui.define([
                 resetBusy();
                 MessageBox.error("An error occurred while updating the item :"+err);
             });
+        },
+        onDownloadPress: function(){
+            const {jsPDF} = window.jspdf;
+            var doc = new jsPDF('p','pt','a4');
+            doc.setFontSize(14);
+            doc.text("Single Book Report",40,40);
+            var oBook = this._oSelectedContext.getObject();
+            //add table
+            var head = [['Title', 'Author', 'Price', 'Stock','Location','Genre']];
+            var body = [
+                [
+                    oBook.title,
+                    oBook.author,
+                    oBook.price,
+                    oBook.stock,
+                    oBook.location,
+                    oBook.genre
+                ],
+            ];
+            doc.autoTable({
+                head:head,
+                body:body,
+                startY:60
+            });
+
+            doc.setFont("Bold");
+            doc.setTextColor("#00DD00");
+            doc.text("All Books",40, doc.lastAutoTable.finalY + 30);
+            doc.setFont("normal");
+            var oModel = this.getView().getModel();
+            var oBinding = oModel.bindList("/Books");
+            oBinding.requestContexts().then(function(aContexts){
+                var bodyTwo = [];
+
+                aContexts.forEach(function(oContext){
+                    var book = oContext.getObject();
+                    bodyTwo.push([
+                        book.title,
+                        book.author,
+                        book.price,
+                        book.stock,
+                        book.location,
+                        book.genre
+                    ]);
+                });
+                doc.autoTable({
+                head:head,
+                body:bodyTwo,
+                startY:doc.lastAutoTable.finalY + 40
+            });
+            doc.save("Bookshop_Report.pdf");
+            });
         }
 
 
