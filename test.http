@@ -32,3 +32,6 @@ Content-Type: application/json
 
 ###delete a book
 DELETE http://localhost:4004/odata/V4/Catalog/Books(1b21a5b3-8fdf-4c54-9923-f25167d0fc75)
+
+###
+GET http://localhost:4004/odata/V4/Catalog/readInvoiceNumber?salesOrderID='2' 

@@ -31,7 +31,7 @@
 				</layoutData>
 			</SearchField>
 			<Button visible="false" icon="sap-icon://search" type="Transparent" id="searchButton" tooltip="Search"/>
-			<OverflowToolbarButton id="_IDGenOverflowToolbarButton" icon="sap-icon://da" type="Transparent" tooltip="Joule" text="Joule">
+			<OverflowToolbarButton id="_IDGenOverflowToolbarButton" press=".onFetchSalesOrderData" icon="sap-icon://da" type="Transparent" tooltip="Joule" text="Joule">
 				<layoutData>
 					<OverflowToolbarLayoutData id="_IDGenOverflowToolbarLayoutData6" group="2"/>
 				</layoutData>

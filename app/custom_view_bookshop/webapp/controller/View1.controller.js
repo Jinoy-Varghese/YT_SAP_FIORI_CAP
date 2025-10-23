@@ -218,6 +218,62 @@ sap.ui.define([
             });
             doc.save("Bookshop_Report.pdf");
             });
+        },
+        onFetchSalesOrderData: async function(){
+            try{
+                var oLabel = new sap.m.Label({ text: "Enter the sales order number:",labelFor: oInput});
+                var oInput = new sap.m.Input({ placeholder:"Sales order", width:"70%"});
+
+                oLabel.addStyleClass("sapUiSmallMarginBeginEnd sapUiSmallMarginTop");
+                oInput.addStyleClass("sapUiSmallMarginBeginEnd sapUiSmallMarginBottom");
+
+                var oModel = this.getView().getModel();
+
+                var oDialog = new sap.m.Dialog({
+                    title: "Sales Order",
+                    content: [oLabel, oInput],
+                    beginButton: new sap.m.Button({
+                        text: "Submit",
+                        press: async function(){
+                            var sOrderID = oInput.getValue();
+
+                            const oFunction = oModel.bindContext('/readInvoiceNumber(...)');
+                            oFunction.setParameter("salesOrderID", sOrderID);
+                            await oFunction.execute();
+                            const salesOrderDetails = oFunction.getBoundContext().getObject();
+
+                            if(salesOrderDetails){
+                                var FormattedText = 
+                                    "Sales Order: " + salesOrderDetails.value[0].SalesOrder+"\n" +
+                                    "Sales Order Item: "+ salesOrderDetails.value[0].SalesOrderItem + "\n" +
+                                    "Requested Quantity: "+ salesOrderDetails.value[0].RequestedQuantity + "\n" +
+                                    "Requested Quantity Unit: "+ salesOrderDetails.value[0].RequestedQuantityUnit;
+                                MessageBox.information(FormattedText,{
+                                    title: "Sales Order Details"
+                                });
+
+                            }
+                            else{
+                               console.log("No Item Details returned for this Sales Order"); 
+                            }
+                            oDialog.close();                        
+                        }
+                    }),
+                    endButton: new sap.m.Button({
+                        text:"Cancel",
+                        press: function(){
+                            oDialog.close();
+                        }
+                    }),
+                    afterClose: function(){
+                        oDialog.destroy();
+                    }
+                });
+                oDialog.open();
+            }
+            catch(err){
+                sap.m.MessageBox.error("Failed to fetch details");
+            }
         }
 
 

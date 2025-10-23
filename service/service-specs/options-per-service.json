@@ -1,0 +1,7 @@
+{
+  "service/service-specs/API_SALES_ORDER_SRV.edmx": {
+    "packageName": "api_sales_order_srv",
+    "directoryName": "API_SALES_ORDER_SRV",
+    "basePath": "/sap/opu/odata/sap/API_SALES_ORDER_SRV"
+  }
+}
