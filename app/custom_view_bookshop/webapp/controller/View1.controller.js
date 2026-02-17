@@ -169,6 +169,7 @@ sap.ui.define([
         },
         onDownloadPress: function(){
             const {jsPDF} = window.jspdf;
+            var that = this;
             var doc = new jsPDF('p','pt','a4');
             doc.setFontSize(14);
             doc.text("Single Book Report",40,40);
@@ -217,8 +218,43 @@ sap.ui.define([
                 startY:doc.lastAutoTable.finalY + 40
             });
             doc.save("Bookshop_Report.pdf");
+
+            var fileName = "Bookshop_Report.pdf";
+            var pdfBlob = doc.output("blob");
+
+            var pdfFile = new File([pdfBlob], fileName, {
+                type: "application/pdf"
+            });
+
+            that._uploadToDMS(pdfFile);
+
             });
         },
+
+        _uploadToDMS: function(file) {
+            var reader = new FileReader();
+            reader.onload = function(e){
+                var base64 = e.target.result.split(",")[1];
+                fetch("/odata/v4/document/uploadPDF", {
+                    method: "POST",
+                    headers : {
+                        "Content-Type":"application/json"
+                    },
+                    body: JSON.stringify({ 
+                        file: base64 
+                    })
+                }).then(res => res.json())
+                .then(()=>{
+                    sap.m.MessageToast.show("PdDF uploaded successfully!");
+                })
+                .catch(err => {
+                    sap.m.MessageBox.error("Upload failed");
+                    console.error(err);
+                });
+            };
+            reader.readAsDataURL(file);
+        },
+
         onFetchSalesOrderData: async function(){
             try{
                 var oLabel = new sap.m.Label({ text: "Enter the sales order number:",labelFor: oInput});

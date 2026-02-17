@@ -4,3 +4,6 @@ service CatalogService {
     entity Books as projection on my.Books;
     function readInvoiceNumber(salesOrderID: String) returns String;
 }
+service DocumentService {
+    action uploadPDF(file: LargeString) returns String;
+}

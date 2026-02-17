@@ -37,6 +37,9 @@
           "url": "db/my-bookshop.sqlite"
         },
         "schema_evolution": "auto"
+      },
+      "documentrepository-cs":{
+        "kind": "rest"
       }
     }
   },
