@@ -7,5 +7,6 @@ entity Books {
     stock: Integer;
     location: String;
     genre: String;
+    dmsObjectId: String;
 }
 

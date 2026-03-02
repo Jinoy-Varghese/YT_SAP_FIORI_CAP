@@ -6,6 +6,49 @@ const FormData = require('form-data');
 
 module.exports = (srv) => {
 
+    srv.on("downloadPDF", async (req) => {
+        const {bookId} = req.data;
+        const repoId = "3f89ff67-c374-453b-832d-8580cc8aae0b";
+
+        //fetch the dms objectid from the database
+        const book = await SELECT.one.from('Books').where({ ID: bookId });
+        if(!book || !book.dmsObjectId){
+            return req.error(404, "No document found for this book.");
+        }
+        const objectId = book.dmsObjectId;
+
+        const sdm = cds.env.requires["documentrepository-cs"].credentials;
+        const tokenUrl = sdm.uaa ? `${sdm.uaa.url}/oauth/token` : sdm.tokenurl;
+        const baseUrl = sdm.endpoints.ecmservice.url.replace(/\/$/,"");
+
+        //Get Access Token
+        const tokenResponse = await axios.post(tokenUrl, "grant_type=client_credentials",{
+        auth:{
+            username: sdm.uaa?.clientid || sdm.clientid,
+            password: sdm.uaa?.clientsecret || sdm.clientsecret
+        },
+        headers: { "Content-Type": "application/x-www-form-urlencoded"}
+        });
+        const accessToken = tokenResponse.data.access_token;
+
+        const downloadURL = `${baseUrl}/browser/${repoId}/root?cmisselector=content&objectId=${objectId}`;
+
+        try{
+            const downloadResponse = await axios.get(downloadURL, { 
+                headers: { 
+                    Authorization: `Bearer ${accessToken}` 
+                },
+                responseType: "arraybuffer"
+            });
+            //convert the binary arraybuffer to a base64 string
+            const base64File = Buffer.from(downloadResponse.data, "binary").toString("base64");
+            return base64File;
+        } catch(error){
+            console.error("DMS download Error Detail:", error.response?.data);
+            req.error(500,`DMS Download Failed: ${error.message}`);
+        }
+    });
+
     srv.on("uploadPDF", async(req) => {
         const repoId = "3f89ff67-c374-453b-832d-8580cc8aae0b";
         const fileName = `generatedFile_${Date.now()}.pdf`;
@@ -51,6 +94,9 @@ module.exports = (srv) => {
             });
             const dmsInfo = uploadResponse.data;
             const objectId = dmsInfo.properties['cmis:objectId'].value;
+
+            await UPDATE('Books').set({ dmsObjectId: objectId }).where({ ID: req.data.bookId });
+
             const downloadLink = `${baseUrl}/browser/${repoId}/root?cmisselector=content&objectId=${objectId}`;
             console.log("File Uploaded Successfully. Download URL Generated.");
 

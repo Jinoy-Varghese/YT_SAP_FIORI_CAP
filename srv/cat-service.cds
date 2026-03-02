@@ -5,5 +5,6 @@ service CatalogService {
     function readInvoiceNumber(salesOrderID: String) returns String;
 }
 service DocumentService {
-    action uploadPDF(file: LargeString) returns String;
+    action uploadPDF(file: LargeString, bookId: UUID) returns String;
+    action downloadPDF(bookId: UUID) returns LargeString;
 }

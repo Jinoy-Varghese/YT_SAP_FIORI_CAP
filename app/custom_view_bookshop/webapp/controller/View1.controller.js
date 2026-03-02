@@ -217,7 +217,7 @@ sap.ui.define([
                 body:bodyTwo,
                 startY:doc.lastAutoTable.finalY + 40
             });
-            doc.save("Bookshop_Report.pdf");
+            // doc.save("Bookshop_Report.pdf");
 
             var fileName = "Bookshop_Report.pdf";
             var pdfBlob = doc.output("blob");
@@ -226,12 +226,67 @@ sap.ui.define([
                 type: "application/pdf"
             });
 
-            that._uploadToDMS(pdfFile);
+            var bookId = oBook.ID;
+            that._uploadToDMS(pdfFile, bookId);
 
             });
         },
 
-        _uploadToDMS: function(file) {
+        downloadPDF: function(sBookId) {
+
+            sap.ui.core.BusyIndicator.show(0);
+            fetch("/odata/v4/document/downloadPDF",{
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body:JSON.stringify({ 
+                    bookId: sBookId 
+                })
+            })
+            .then(res => {
+                if(!res.ok) {
+                    throw new Error("Failed to download PDF");
+                }
+                return res.json();
+            })
+            .then(data => {
+                sap.ui.core.BusyIndicator.hide();
+
+                var base64String = data.value;
+                if(!base64String){
+                    sap.m.MessageBox.error("No PDF content found for this book");
+                    return;
+                }
+
+                //convert base64 string back to binary data
+                var byteCharacters = atob(base64String);
+                var byteNumbers = new Array(byteCharacters.length);
+                for( var i=0; i < byteCharacters.length; i++){
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                var byteArray = new Uint8Array(byteNumbers);
+
+                //create blob from the binary data
+                var blob = new Blob([byteArray],{ type: 'application/pdf' });
+
+                //trigger the native browser download
+                var url = window.URL.createObjectURL(blob);
+                var link = document.createElement("a");
+                link.href = url;
+
+                //give the downloaded file a dynamic name
+                link.setAttribute("download","Book_"+sBookId+"_From_DMS.pdf");
+
+                //Append, click, and remove to keep the DOM clean
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+
+                sap.m.MessageToast.show("File downloaded directly from the DMS Server");
+            });
+        },
+        _uploadToDMS: function(file, bookId) {
+            var that = this;
             var reader = new FileReader();
             reader.onload = function(e){
                 var base64 = e.target.result.split(",")[1];
@@ -241,11 +296,13 @@ sap.ui.define([
                         "Content-Type":"application/json"
                     },
                     body: JSON.stringify({ 
-                        file: base64 
+                        file: base64,
+                        bookId: bookId 
                     })
                 }).then(res => res.json())
                 .then(()=>{
-                    sap.m.MessageToast.show("PdDF uploaded successfully!");
+                    that.downloadPDF(bookId);
+                    sap.m.MessageToast.show("PDF uploaded successfully!");
                 })
                 .catch(err => {
                     sap.m.MessageBox.error("Upload failed");
